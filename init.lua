@@ -1,105 +1,178 @@
---
--- admin_blocks - Prevent random players griefing with "n00b blocks".
---
+--moregrass
+--adds more uses for grass into the game
+--created by meseking
 
-admin_blocks = {
-    disallowed_msg = 'You may not place that block!',
-    disallowed_dig = 'You may not pick that block up!'
-}
 
--- Restricted items
-local restricted_items = {
-    'bucket:bucket_lava',
-    'technic:lava_can',
-    'technic:corium_source',
-    'gloopblocks:rainbow_block_horizontal',
-    'gloopblocks:rainbow_block_diagonal',
-    'yaycat:yaycat',
-    'yaycatrainbow:yaycatrainbow',
-    'default:lava_source',
-    'default:water_source',
-    'default:river_water_source',
-    'fire:basic_flame',
-    'fire:permanent_flame',
-}
+------------------------------------------------------------------------
+--GRASS
+------------------------------------------------------------------------
 
--- Record a violation
-admin_blocks.record_violation = function(name, node, dig, itemstack)
-	local msg = 'tried placing "n00b block"'
-	if dig then
-		msg = 'tried using a bucket on the "n00b block"'
-	end
-	minetest.log('action', 'Player ' .. name ..
-		' ' .. msg .. ' ' .. node .. '.')
-	minetest.chat_send_player(name, admin_blocks['disallowed_' ..
-        (dig and 'dig' or 'msg')])
-	return itemstack
-end
-
--- Is the player trusted?
-admin_blocks.is_trusted = function(name)
-    return minetest.check_player_privs(name, {trusted = true})
-end
-
--- Restrict an item
-admin_blocks.restrict_item = function(node)
-    local def = minetest.registered_items[node]
-    if not def then return end
-
-    local on_place = def.on_place
-    if not on_place then
-        on_place = minetest.item_place
-    end
-
-    minetest.override_item(node, {
-        on_place = function(itemstack, placer, pointed_thing)
-			local name = placer:get_player_name()
-			if not admin_blocks.is_trusted(name) then
-				return admin_blocks.record_violation(name, node, false,
-                    itemstack)
-			else
-				return on_place(itemstack, placer, pointed_thing)
-			end
-		end,
-		_admin_blocks_restricted = true,
-    })
-end
-
--- Restrict a bucket
-admin_blocks.restrict_empty_bucket = function(node)
-    local def = minetest.registered_items[node]
-    if not def then return end
-
-    local on_use = def.on_use
-    if not on_use then return end
-
-    minetest.override_item(node, {
-        on_use = function(itemstack, user, pointed_thing)
-			if pointed_thing.type == 'node' then
-				local lnode = minetest.get_node(pointed_thing.under).name
-				local ldef  = minetest.registered_items[lnode]
-                local name  = user:get_player_name()
-				if ldef and ldef._admin_blocks_restricted and
-                  not admin_blocks.is_trusted(name) then
-					return admin_blocks.record_violation(name, lnode, true)
-				end
-			end
-			return on_use(itemstack, user, pointed_thing)
-		end,
-		_admin_blocks_restricted = true,
-    })
-end
-
--- Add the 'trusted' priv
-minetest.register_privilege("trusted", {
-    description = 'Allows players to place "n00b blocks".',
-    give_to_singleplayer = false
+-----------------------------------------------------------
+--Grass Block
+-----------------------------------------------------------
+minetest.register_node("moregrass:grassblock", {
+	description = "Grassblock",
+	tiles = {
+		"moregrass_grass.png", -- top
+		"moregrass_grass.png", -- bottom
+		"moregrass_grass.png", -- right
+		"moregrass_grass.png", -- left
+		"moregrass_grass.png", -- back
+		"moregrass_grass.png"  -- front
+},
+	paramtype = "light",
+	paramtype2 = "facedir",
+	sunlight_propagates = true,
+	is_ground_content = true,
+	groups = {cracky=2},
 })
 
--- Iterate over the disallowed nodes list
-for _, node in ipairs(restricted_items) do
-	admin_blocks.restrict_item(node)
-end
 
--- Restrict the empty bucket
-admin_blocks.restrict_empty_bucket('bucket:bucket_empty')
+-----------------------------------------------------------
+--Grass with Flowers
+-----------------------------------------------------------
+minetest.register_node("moregrass:flowersgrass", {
+	description = "Grass with flowers",
+	tiles = {
+		"moregrass_flowersgrass.png", -- top
+		"moregrass_dirt.png", -- bottom
+		"moregrass_grass_side.png", -- right
+		"moregrass_grass_side.png", -- left
+		"moregrass_grass_side.png", -- back
+		"moregrass_grass_side.png"  -- front
+},
+	paramtype = "light",
+	paramtype2 = "facedir",
+	sunlight_propagates = true,
+	is_ground_content = true,
+	groups = {cracky=2},
+})
+
+-----------------------------------------------------------
+--Grass with concrete edge
+-----------------------------------------------------------
+minetest.register_node("moregrass:grass_with_concrete", {
+	description = "Grass with a concrete edge",
+	tiles = {
+		"moregrass_grass_with_concrete.png", -- top
+		"moregrass_concrete.png", -- bottom
+		"moregrass_grass.png", -- right
+		"moregrass_concrete.png", -- left
+		"moregrass_grass_with_concrete_back.png", -- back
+		"moregrass_grass_with_concrete.png"  -- front
+},
+	paramtype = "light",
+	paramtype2 = "facedir",
+	sunlight_propagates = true,
+	is_ground_content = true,
+	groups = {cracky=2},
+})
+
+-----------------------------------------------------------
+--rotatable dirt_with_grass
+-----------------------------------------------------------
+minetest.register_node("moregrass:rotatable_dirt_with_grass", {
+	description = "Rotatable Grass",
+	tiles = {
+		"moregrass_grass.png", -- top
+		"moregrass_dirt.png", -- bottom
+		"moregrass_grass_side.png", -- right
+		"moregrass_grass_side.png", -- left
+		"moregrass_grass_side.png", -- back
+		"moregrass_grass_side.png"  -- front
+},
+	paramtype = "light",
+	paramtype2 = "facedir",
+	sunlight_propagates = true,
+	is_ground_content = true,
+	groups = {cracky=2},
+})
+
+
+
+------------------------------------------------------------------------
+--DRY GRASS
+------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------
+--Dry Grass Block
+-----------------------------------------------------------
+minetest.register_node("moregrass:dry_grassblock", {
+	description = "Dry grass block",
+	tiles = {
+		"moregrass_dry_grass.png", -- top
+		"moregrass_dry_grass.png", -- bottom
+		"moregrass_dry_grass.png", -- right
+		"moregrass_dry_grass.png", -- left
+		"moregrass_dry_grass.png", -- back
+		"moregrass_dry_grass.png"  -- front
+},
+	paramtype = "light",
+	paramtype2 = "facedir",
+	sunlight_propagates = true,
+	is_ground_content = true,
+	groups = {cracky=2},
+})
+
+
+-----------------------------------------------------------
+--Dry Grass with Flowers
+-----------------------------------------------------------
+minetest.register_node("moregrass:flowersdry_grass", {
+	description = "Dry grass block with flowers",
+	tiles = {
+		"moregrass_flowersdry_grass.png", -- top
+		"moregrass_dirt.png", -- bottom
+		"moregrass_dry_grass_side.png", -- right
+		"moregrass_dry_grass_side.png", -- left
+		"moregrass_dry_grass_side.png", -- back
+		"moregrass_dry_grass_side.png"  -- front
+},
+	paramtype = "light",
+	paramtype2 = "facedir",
+	sunlight_propagates = true,
+	is_ground_content = true,
+	groups = {cracky=2},
+})
+
+-----------------------------------------------------------
+--Dry Grass with Concrete Edge
+-----------------------------------------------------------
+minetest.register_node("moregrass:dry_grass_with_concrete", {
+	description = "Dry grass with a concrete edge",
+	tiles = {
+		"moregrass_dry_grass_with_concrete.png", -- top
+		"moregrass_concrete.png", -- bottom
+		"moregrass_dry_grass.png", -- right
+		"moregrass_concrete.png", -- left
+		"moregrass_dry_grass_with_concrete_back.png", -- back
+		"moregrass_dry_grass_with_concrete.png"  -- front
+},
+	paramtype = "light",
+	paramtype2 = "facedir",
+	sunlight_propagates = true,
+	is_ground_content = true,
+	groups = {cracky=2},
+})
+
+-----------------------------------------------------------
+--Rotatable Dry Grass
+-----------------------------------------------------------
+minetest.register_node("moregrass:rotatable_dirt_with_dry_grass", {
+	description = "Rotatable dry grass",
+	tiles = {
+		"moregrass_dry_grass.png", -- top
+		"moregrass_dirt.png", -- bottom
+		"moregrass_dry_grass_side.png", -- right
+		"moregrass_dry_grass_side.png", -- left
+		"moregrass_dry_grass_side.png", -- back
+		"moregrass_dry_grass_side.png"  -- front
+},
+	paramtype = "light",
+	paramtype2 = "facedir",
+	sunlight_propagates = true,
+	is_ground_content = true,
+	groups = {cracky=2},
+})
